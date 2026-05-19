@@ -1,26 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Dashboard } from "@/components/Dashboard/Dashboard";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "VeriAI — AI Hallucination Detection for CS Students" },
+      {
+        name: "description",
+        content:
+          "VeriAI is a multi-source cross-verification dashboard that helps undergraduate Computer Science students detect hallucinations in AI-generated answers.",
+      },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
 function Index() {
-  return <PlaceholderIndex />;
+  return <Dashboard />;
 }
