@@ -1,12 +1,42 @@
-import { ExternalLink, Globe } from "lucide-react";
-import type { Source } from "@/lib/veriai/types";
+import { BookOpen, CheckCircle2, ExternalLink, FileCode2, Globe, GraduationCap, MessageSquare, XCircle, Info } from "lucide-react";
+import type { Source, SourceKind, SourceStatus } from "@/lib/veriai/types";
 
 interface Props {
   source: Source;
   index: number;
 }
 
+const KIND_ICON: Record<SourceKind, typeof Globe> = {
+  Wikipedia: BookOpen,
+  "MDN Web Docs": FileCode2,
+  "Stack Overflow": MessageSquare,
+  "Official Documentation": Globe,
+  "Academic Reference": GraduationCap,
+};
+
+const STATUS_STYLES: Record<SourceStatus, { icon: typeof CheckCircle2; cls: string; label: string }> = {
+  Supports: {
+    icon: CheckCircle2,
+    cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    label: "Supports",
+  },
+  Contradicts: {
+    icon: XCircle,
+    cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+    label: "Contradicts",
+  },
+  Related: {
+    icon: Info,
+    cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    label: "Related",
+  },
+};
+
 export function SourceCard({ source, index }: Props) {
+  const KindIcon = KIND_ICON[source.kind] ?? Globe;
+  const status = STATUS_STYLES[source.status];
+  const StatusIcon = status.icon;
+
   return (
     <a
       href={source.url}
@@ -16,19 +46,29 @@ export function SourceCard({ source, index }: Props) {
       style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Globe className="h-3.5 w-3.5 text-indigo-500" />
-          <span>{source.domain}</span>
+        <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+          <KindIcon className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
+          <span className="truncate font-medium text-foreground/80">{source.kind}</span>
+          <span className="h-1 w-1 shrink-0 rounded-full bg-muted-foreground/40" />
+          <span className="truncate">{source.domain}</span>
         </div>
-        <ExternalLink className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-indigo-500" />
+        <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-indigo-500" />
       </div>
+
       <h4 className="mt-2 text-sm font-semibold leading-snug text-foreground group-hover:text-indigo-500">
         {source.title}
       </h4>
       <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
         {source.snippet}
       </p>
+
       <div className="mt-3 flex items-center gap-2">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${status.cls}`}
+        >
+          <StatusIcon className="h-3 w-3" />
+          {status.label}
+        </span>
         <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500"
@@ -36,7 +76,7 @@ export function SourceCard({ source, index }: Props) {
           />
         </div>
         <span className="text-[11px] font-medium tabular-nums text-muted-foreground">
-          {source.relevance}% match
+          {source.relevance}%
         </span>
       </div>
     </a>
