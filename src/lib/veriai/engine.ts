@@ -1,20 +1,30 @@
-import type { Claim, Source, VerificationResult, ClaimStatus } from "./types";
+import type { Claim, Source, VerificationResult, ClaimStatus, SourceStatus } from "./types";
+import sourcesData from "./sources.json";
 
-/**
- * Mock academic knowledge base mapping topics to authoritative claims.
- * Deterministic, frontend-only heuristic.
- */
-interface TopicEntry {
-  topic: string;
-  keywords: string[];
-  truths: string[]; // substrings that indicate correct understanding
-  falsehoods: string[]; // substrings that indicate common hallucinations
-  sources: Source[];
+interface RawSource {
+  id: string;
+  kind: string;
+  title: string;
+  domain: string;
+  relevance: number;
+  snippet: string;
+  url: string;
 }
 
-const KNOWLEDGE: TopicEntry[] = [
+const SOURCES = sourcesData as Record<string, RawSource[]>;
+
+interface TopicEntry {
+  topic: string;
+  sourceKey: string;
+  keywords: string[];
+  truths: string[];
+  falsehoods: string[];
+}
+
+const TOPICS: TopicEntry[] = [
   {
     topic: "ACID Properties",
+    sourceKey: "ACID Properties",
     keywords: ["acid", "atomicity", "consistency", "isolation", "durability", "transaction"],
     truths: [
       "atomicity",
@@ -26,39 +36,11 @@ const KNOWLEDGE: TopicEntry[] = [
       "commit",
       "rollback",
     ],
-    falsehoods: ["availability", "cap theorem replaces acid", "acid stands for"],
-    sources: [
-      {
-        id: "s-acid-1",
-        title: "Database System Concepts (Silberschatz, Korth, Sudarshan)",
-        domain: "db-book.com",
-        relevance: 96,
-        snippet:
-          "ACID properties guarantee that database transactions are processed reliably: Atomicity, Consistency, Isolation, and Durability.",
-        url: "https://www.db-book.com",
-      },
-      {
-        id: "s-acid-2",
-        title: "ACID — PostgreSQL Documentation",
-        domain: "postgresql.org",
-        relevance: 91,
-        snippet:
-          "PostgreSQL transactions adhere to the ACID model, ensuring atomic commits and durable writes through WAL.",
-        url: "https://www.postgresql.org/docs/current/tutorial-transactions.html",
-      },
-      {
-        id: "s-acid-3",
-        title: "Transactions — MIT 6.830 Lecture Notes",
-        domain: "mit.edu",
-        relevance: 84,
-        snippet:
-          "A transaction is a sequence of operations performed as a single logical unit of work satisfying ACID.",
-        url: "https://dspace.mit.edu",
-      },
-    ],
+    falsehoods: ["availability", "cap theorem replaces acid", "acid stands for availability"],
   },
   {
     topic: "Dijkstra's Algorithm",
+    sourceKey: "Dijkstra's Algorithm",
     keywords: ["dijkstra", "shortest path", "graph", "priority queue", "bfs"],
     truths: [
       "shortest path",
@@ -80,51 +62,13 @@ const KNOWLEDGE: TopicEntry[] = [
       "linear time",
       "bellman-ford is faster",
     ],
-    sources: [
-      {
-        id: "s-dij-1",
-        title: "Introduction to Algorithms (CLRS) — Chapter 24",
-        domain: "mitpress.mit.edu",
-        relevance: 97,
-        snippet:
-          "Dijkstra's algorithm solves the single-source shortest-paths problem on a weighted, directed graph with non-negative edge weights in O((V+E) log V) using a binary heap.",
-        url: "https://mitpress.mit.edu/books/introduction-algorithms-third-edition",
-      },
-      {
-        id: "s-dij-2",
-        title: "Dijkstra's Algorithm — Stanford CS161",
-        domain: "stanford.edu",
-        relevance: 92,
-        snippet:
-          "The algorithm requires non-negative edge weights. For negative weights, Bellman-Ford must be used instead.",
-        url: "https://stanford.edu/~rezab/classes/cme323",
-      },
-      {
-        id: "s-dij-3",
-        title: "Shortest Paths — Princeton Algorithms",
-        domain: "princeton.edu",
-        relevance: 88,
-        snippet:
-          "Using a Fibonacci heap, Dijkstra runs in O(E + V log V); with a binary heap, O((V+E) log V).",
-        url: "https://algs4.cs.princeton.edu/44sp",
-      },
-    ],
   },
   {
     topic: "Big-O Notation",
+    sourceKey: "Big-O Notation",
     keywords: ["big-o", "big o", "complexity", "asymptotic"],
     truths: ["upper bound", "worst case", "asymptotic", "growth"],
     falsehoods: ["exact runtime", "always tight bound"],
-    sources: [
-      {
-        id: "s-bo-1",
-        title: "Asymptotic Analysis — CLRS Chapter 3",
-        domain: "mitpress.mit.edu",
-        relevance: 90,
-        snippet: "Big-O describes an asymptotic upper bound on the growth rate of a function.",
-        url: "https://mitpress.mit.edu",
-      },
-    ],
   },
 ];
 
@@ -142,17 +86,19 @@ function splitClaims(text: string): string[] {
 function matchTopic(text: string): TopicEntry | null {
   const lower = text.toLowerCase();
   let best: { entry: TopicEntry; hits: number } | null = null;
-  for (const entry of KNOWLEDGE) {
+  for (const entry of TOPICS) {
     const hits = entry.keywords.reduce((n, kw) => (lower.includes(kw) ? n + 1 : n), 0);
     if (hits > 0 && (!best || hits > best.hits)) best = { entry, hits };
   }
   return best?.entry ?? null;
 }
 
-function classifyClaim(claim: string, topic: TopicEntry | null): { status: ClaimStatus; confidence: number } {
+function classifyClaim(
+  claim: string,
+  topic: TopicEntry | null,
+): { status: ClaimStatus; confidence: number } {
   const lower = claim.toLowerCase();
   if (!topic) {
-    // Out-of-domain: cannot verify
     const tokens = lower.split(/\W+/).filter((t) => t.length > 3 && !STOP.has(t));
     const score = Math.min(60, 30 + tokens.length * 2);
     return { status: "Unverified", confidence: score };
@@ -169,6 +115,27 @@ function classifyClaim(claim: string, topic: TopicEntry | null): { status: Claim
     return { status: "Verified", confidence: conf };
   }
   return { status: "Unverified", confidence: 55 };
+}
+
+function buildSources(topic: TopicEntry | null, claims: Claim[]): Source[] {
+  const raw = topic ? SOURCES[topic.sourceKey] : SOURCES._fallback;
+  const contradicted = claims.filter((c) => c.status === "Contradicted").length;
+  const verified = claims.filter((c) => c.status === "Verified").length;
+
+  let overall: SourceStatus;
+  if (!topic) overall = "Related";
+  else if (contradicted > verified) overall = "Contradicts";
+  else if (verified > 0) overall = "Supports";
+  else overall = "Related";
+
+  return raw.map((s, i) => {
+    // Vary status slightly: lowest-relevance source becomes "Related"
+    let status = overall;
+    if (overall !== "Related" && i === raw.length - 1 && raw.length > 2) {
+      status = "Related";
+    }
+    return { ...s, kind: s.kind as Source["kind"], status };
+  });
 }
 
 export function verifyContent(text: string): VerificationResult {
@@ -193,31 +160,31 @@ export function verifyContent(text: string): VerificationResult {
     });
   }
 
-  // Overall confidence: weighted by status
   const weight = (c: Claim) =>
-    c.status === "Verified" ? c.confidence : c.status === "Contradicted" ? c.confidence * 0.4 : c.confidence * 0.7;
+    c.status === "Verified"
+      ? c.confidence
+      : c.status === "Contradicted"
+        ? c.confidence * 0.4
+        : c.confidence * 0.7;
   const overall = Math.round(claims.reduce((sum, c) => sum + weight(c), 0) / claims.length);
 
-  const sources: Source[] = topic ? topic.sources : [
-    {
-      id: "s-generic-1",
-      title: "ACM Computing Classification System",
-      domain: "acm.org",
-      relevance: 42,
-      snippet: "No direct topic match found in the indexed undergraduate CS knowledge base.",
-      url: "https://www.acm.org/publications/class-2012",
-    },
-  ];
+  const sources = buildSources(topic, claims);
 
   const contradicted = claims.filter((c) => c.status === "Contradicted").length;
   const verified = claims.filter((c) => c.status === "Verified").length;
-  const summary = contradicted > 0
-    ? `Detected ${contradicted} potentially hallucinated claim${contradicted > 1 ? "s" : ""}${topic ? ` related to ${topic.topic}` : ""}.`
-    : verified > 0
-      ? `Cross-verified ${verified} claim${verified > 1 ? "s" : ""}${topic ? ` against ${topic.topic} references` : ""}.`
-      : "Content is outside the indexed undergraduate CS domain.";
+  const summary =
+    contradicted > 0
+      ? `Detected ${contradicted} potentially hallucinated claim${contradicted > 1 ? "s" : ""}${topic ? ` related to ${topic.topic}` : ""}.`
+      : verified > 0
+        ? `Cross-verified ${verified} claim${verified > 1 ? "s" : ""}${topic ? ` against ${topic.topic} references` : ""}.`
+        : "Content is outside the indexed undergraduate CS domain.";
 
-  return { overallConfidence: Math.max(0, Math.min(100, overall)), claims, sources, summary };
+  return {
+    overallConfidence: Math.max(0, Math.min(100, overall)),
+    claims,
+    sources,
+    summary,
+  };
 }
 
 export interface SampleDataset {

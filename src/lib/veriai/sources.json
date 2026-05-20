@@ -1,0 +1,145 @@
+{
+  "ACID Properties": [
+    {
+      "id": "acid-wiki",
+      "kind": "Wikipedia",
+      "title": "ACID — Wikipedia",
+      "domain": "en.wikipedia.org",
+      "relevance": 95,
+      "snippet": "In computer science, ACID (atomicity, consistency, isolation, durability) is a set of properties of database transactions intended to guarantee data validity despite errors, power failures, and other mishaps.",
+      "url": "https://en.wikipedia.org/wiki/ACID"
+    },
+    {
+      "id": "acid-pg",
+      "kind": "Official Documentation",
+      "title": "Transactions — PostgreSQL Documentation",
+      "domain": "postgresql.org",
+      "relevance": 92,
+      "snippet": "PostgreSQL transactions adhere to the ACID model. Atomic commits and durable writes are guaranteed through the Write-Ahead Log (WAL).",
+      "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html"
+    },
+    {
+      "id": "acid-so",
+      "kind": "Stack Overflow",
+      "title": "What does ACID actually mean in databases?",
+      "domain": "stackoverflow.com",
+      "relevance": 84,
+      "snippet": "Top answer: ACID = Atomicity (all-or-nothing), Consistency (valid state transitions), Isolation (concurrent txn safety), Durability (survives crashes).",
+      "url": "https://stackoverflow.com/questions/3740280/what-do-atomic-consistent-isolated-durable-acid-really-mean"
+    },
+    {
+      "id": "acid-mit",
+      "kind": "Academic Reference",
+      "title": "Database System Concepts (Silberschatz, Korth, Sudarshan)",
+      "domain": "db-book.com",
+      "relevance": 96,
+      "snippet": "ACID properties guarantee that database transactions are processed reliably and preserve data integrity under concurrent access and failures.",
+      "url": "https://www.db-book.com"
+    }
+  ],
+  "Dijkstra's Algorithm": [
+    {
+      "id": "dij-wiki",
+      "kind": "Wikipedia",
+      "title": "Dijkstra's algorithm — Wikipedia",
+      "domain": "en.wikipedia.org",
+      "relevance": 96,
+      "snippet": "Dijkstra's algorithm finds shortest paths from a source vertex in a graph with non-negative edge weights. With a binary heap it runs in O((V+E) log V).",
+      "url": "https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm"
+    },
+    {
+      "id": "dij-clrs",
+      "kind": "Academic Reference",
+      "title": "Introduction to Algorithms (CLRS) — Chapter 24",
+      "domain": "mitpress.mit.edu",
+      "relevance": 97,
+      "snippet": "Dijkstra's algorithm solves the single-source shortest-paths problem on a weighted, directed graph with non-negative edge weights.",
+      "url": "https://mitpress.mit.edu/books/introduction-algorithms-third-edition"
+    },
+    {
+      "id": "dij-stanford",
+      "kind": "Academic Reference",
+      "title": "Dijkstra's Algorithm — Stanford CS161 Lecture Notes",
+      "domain": "stanford.edu",
+      "relevance": 92,
+      "snippet": "The algorithm requires non-negative edge weights. For graphs containing negative weights, Bellman-Ford must be used instead.",
+      "url": "https://stanford.edu/~rezab/classes/cme323"
+    },
+    {
+      "id": "dij-so",
+      "kind": "Stack Overflow",
+      "title": "Why does Dijkstra's algorithm fail on negative weights?",
+      "domain": "stackoverflow.com",
+      "relevance": 88,
+      "snippet": "Accepted answer: Dijkstra's greedy choice assumes that once a vertex is finalized its distance cannot decrease — negative edges break this invariant.",
+      "url": "https://stackoverflow.com/questions/6799172/negative-weights-using-dijkstras-algorithm"
+    },
+    {
+      "id": "dij-princeton",
+      "kind": "Official Documentation",
+      "title": "Shortest Paths — Princeton Algorithms (algs4)",
+      "domain": "algs4.cs.princeton.edu",
+      "relevance": 89,
+      "snippet": "Using a Fibonacci heap, Dijkstra runs in O(E + V log V); with a binary heap, O((V+E) log V). It is not dynamic programming — it is a greedy algorithm.",
+      "url": "https://algs4.cs.princeton.edu/44sp"
+    }
+  ],
+  "Big-O Notation": [
+    {
+      "id": "bo-wiki",
+      "kind": "Wikipedia",
+      "title": "Big O notation — Wikipedia",
+      "domain": "en.wikipedia.org",
+      "relevance": 93,
+      "snippet": "Big O notation describes the limiting behavior of a function when the argument tends towards a particular value or infinity — an asymptotic upper bound.",
+      "url": "https://en.wikipedia.org/wiki/Big_O_notation"
+    },
+    {
+      "id": "bo-mdn",
+      "kind": "MDN Web Docs",
+      "title": "Algorithm complexity — MDN Web Docs Glossary",
+      "domain": "developer.mozilla.org",
+      "relevance": 80,
+      "snippet": "Big-O notation expresses the worst-case growth rate of an algorithm's running time as input size increases.",
+      "url": "https://developer.mozilla.org/en-US/docs/Glossary/Algorithm"
+    },
+    {
+      "id": "bo-clrs",
+      "kind": "Academic Reference",
+      "title": "Asymptotic Analysis — CLRS Chapter 3",
+      "domain": "mitpress.mit.edu",
+      "relevance": 90,
+      "snippet": "Big-O describes an asymptotic upper bound on the growth rate of a function — it is not a tight bound (that is Θ).",
+      "url": "https://mitpress.mit.edu"
+    },
+    {
+      "id": "bo-so",
+      "kind": "Stack Overflow",
+      "title": "What is a plain English explanation of Big-O?",
+      "domain": "stackoverflow.com",
+      "relevance": 85,
+      "snippet": "Most upvoted answer of all time: Big-O tells you how the runtime grows relative to input size, ignoring constants and lower-order terms.",
+      "url": "https://stackoverflow.com/questions/487258/what-is-a-plain-english-explanation-of-big-o-notation"
+    }
+  ],
+  "_fallback": [
+    {
+      "id": "fallback-acm",
+      "kind": "Academic Reference",
+      "title": "ACM Computing Classification System",
+      "domain": "acm.org",
+      "relevance": 42,
+      "snippet": "No direct topic match was found in the indexed undergraduate CS knowledge base.",
+      "url": "https://www.acm.org/publications/class-2012"
+    },
+    {
+      "id": "fallback-wiki",
+      "kind": "Wikipedia",
+      "title": "Outline of computer science — Wikipedia",
+      "domain": "en.wikipedia.org",
+      "relevance": 38,
+      "snippet": "General reference covering core CS subfields — used when no specific topic was identified in the submitted content.",
+      "url": "https://en.wikipedia.org/wiki/Outline_of_computer_science"
+    }
+  ]
+}
