@@ -1,23 +1,34 @@
 export type ClaimStatus = "Verified" | "Contradicted" | "Unverified";
 
+export type SourceKind =
+  | "Wikipedia"
+  | "MDN Web Docs"
+  | "Stack Overflow"
+  | "Official Documentation"
+  | "Academic Reference";
+
+export type SourceStatus = "Supports" | "Contradicts" | "Related";
+
 export interface Claim {
   id: string;
   text: string;
   status: ClaimStatus;
-  confidence: number; // 0-100
+  confidence: number;
 }
 
 export interface Source {
   id: string;
+  kind: SourceKind;
   title: string;
   domain: string;
-  relevance: number; // 0-100
+  relevance: number;
   snippet: string;
   url: string;
+  status: SourceStatus;
 }
 
 export interface VerificationResult {
-  overallConfidence: number; // 0-100
+  overallConfidence: number;
   claims: Claim[];
   sources: Source[];
   summary: string;
