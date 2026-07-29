@@ -1,5 +1,9 @@
-import type { Claim, Source, VerificationResult, ClaimStatus, SourceStatus } from "./types";
+// Legacy deterministic engine, kept as offline fallback source.
+// Uses its own local types to stay decoupled from the live pipeline.
 import sourcesData from "./sources.json";
+
+type LegacyStatus = "Verified" | "Contradicted" | "Unverified";
+type LegacySourceStatus = "Supports" | "Contradicts" | "Related";
 
 interface RawSource {
   id: string;
@@ -9,6 +13,24 @@ interface RawSource {
   relevance: number;
   snippet: string;
   url: string;
+}
+
+interface LegacyClaim {
+  id: string;
+  text: string;
+  status: LegacyStatus;
+  confidence: number;
+}
+
+interface LegacySource extends RawSource {
+  status: LegacySourceStatus;
+}
+
+export interface LegacyResult {
+  overallConfidence: number;
+  claims: LegacyClaim[];
+  sources: LegacySource[];
+  summary: string;
 }
 
 const SOURCES = sourcesData as Record<string, RawSource[]>;
@@ -26,42 +48,15 @@ const TOPICS: TopicEntry[] = [
     topic: "ACID Properties",
     sourceKey: "ACID Properties",
     keywords: ["acid", "atomicity", "consistency", "isolation", "durability", "transaction"],
-    truths: [
-      "atomicity",
-      "consistency",
-      "isolation",
-      "durability",
-      "all or nothing",
-      "transaction",
-      "commit",
-      "rollback",
-    ],
+    truths: ["atomicity", "consistency", "isolation", "durability", "all or nothing", "transaction", "commit", "rollback"],
     falsehoods: ["availability", "cap theorem replaces acid", "acid stands for availability"],
   },
   {
     topic: "Dijkstra's Algorithm",
     sourceKey: "Dijkstra's Algorithm",
     keywords: ["dijkstra", "shortest path", "graph", "priority queue", "bfs"],
-    truths: [
-      "shortest path",
-      "non-negative",
-      "priority queue",
-      "greedy",
-      "o((v+e) log v)",
-      "o(e log v)",
-      "min-heap",
-    ],
-    falsehoods: [
-      "negative weight",
-      "o(n)",
-      "o(v)",
-      "o(log n)",
-      "dynamic programming",
-      "works on negative",
-      "always o(n log n)",
-      "linear time",
-      "bellman-ford is faster",
-    ],
+    truths: ["shortest path", "non-negative", "priority queue", "greedy", "o((v+e) log v)", "o(e log v)", "min-heap"],
+    falsehoods: ["negative weight", "o(n)", "o(v)", "o(log n)", "dynamic programming", "works on negative", "always o(n log n)", "linear time", "bellman-ford is faster"],
   },
   {
     topic: "Big-O Notation",
@@ -77,10 +72,7 @@ const STOP = new Set([
 ]);
 
 function splitClaims(text: string): string[] {
-  return text
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 12);
+  return text.split(/(?<=[.!?])\s+|\n+/).map((s) => s.trim()).filter((s) => s.length > 12);
 }
 
 function matchTopic(text: string): TopicEntry | null {
@@ -93,83 +85,49 @@ function matchTopic(text: string): TopicEntry | null {
   return best?.entry ?? null;
 }
 
-function classifyClaim(
-  claim: string,
-  topic: TopicEntry | null,
-): { status: ClaimStatus; confidence: number } {
+function classify(claim: string, topic: TopicEntry | null): { status: LegacyStatus; confidence: number } {
   const lower = claim.toLowerCase();
   if (!topic) {
     const tokens = lower.split(/\W+/).filter((t) => t.length > 3 && !STOP.has(t));
-    const score = Math.min(60, 30 + tokens.length * 2);
-    return { status: "Unverified", confidence: score };
+    return { status: "Unverified", confidence: Math.min(60, 30 + tokens.length * 2) };
   }
   const truthHits = topic.truths.filter((t) => lower.includes(t)).length;
   const falseHits = topic.falsehoods.filter((f) => lower.includes(f)).length;
-
-  if (falseHits > 0) {
-    const conf = Math.max(8, 35 - falseHits * 10 - truthHits * 2);
-    return { status: "Contradicted", confidence: conf };
-  }
-  if (truthHits >= 1) {
-    const conf = Math.min(98, 72 + truthHits * 7);
-    return { status: "Verified", confidence: conf };
-  }
+  if (falseHits > 0) return { status: "Contradicted", confidence: Math.max(8, 35 - falseHits * 10 - truthHits * 2) };
+  if (truthHits >= 1) return { status: "Verified", confidence: Math.min(98, 72 + truthHits * 7) };
   return { status: "Unverified", confidence: 55 };
 }
 
-function buildSources(topic: TopicEntry | null, claims: Claim[]): Source[] {
+function buildSources(topic: TopicEntry | null, claims: LegacyClaim[]): LegacySource[] {
   const raw = topic ? SOURCES[topic.sourceKey] : SOURCES._fallback;
   const contradicted = claims.filter((c) => c.status === "Contradicted").length;
   const verified = claims.filter((c) => c.status === "Verified").length;
-
-  let overall: SourceStatus;
+  let overall: LegacySourceStatus;
   if (!topic) overall = "Related";
   else if (contradicted > verified) overall = "Contradicts";
   else if (verified > 0) overall = "Supports";
   else overall = "Related";
-
   return raw.map((s, i) => {
-    // Vary status slightly: lowest-relevance source becomes "Related"
-    let status = overall;
-    if (overall !== "Related" && i === raw.length - 1 && raw.length > 2) {
-      status = "Related";
-    }
-    return { ...s, kind: s.kind as Source["kind"], status };
+    let status: LegacySourceStatus = overall;
+    if (overall !== "Related" && i === raw.length - 1 && raw.length > 2) status = "Related";
+    return { ...s, status };
   });
 }
 
-export function verifyContent(text: string): VerificationResult {
+export function verifyContent(text: string): LegacyResult {
   const topic = matchTopic(text);
   const sentences = splitClaims(text);
-  const claims: Claim[] = sentences.slice(0, 8).map((s, i) => {
-    const { status, confidence } = classifyClaim(s, topic);
-    return {
-      id: `c-${i}`,
-      text: s.length > 220 ? s.slice(0, 217) + "…" : s,
-      status,
-      confidence,
-    };
+  const claims: LegacyClaim[] = sentences.slice(0, 8).map((s, i) => {
+    const { status, confidence } = classify(s, topic);
+    return { id: `c-${i}`, text: s.length > 220 ? s.slice(0, 217) + "…" : s, status, confidence };
   });
-
   if (claims.length === 0) {
-    claims.push({
-      id: "c-0",
-      text: text.trim().slice(0, 200) || "(empty input)",
-      status: "Unverified",
-      confidence: 40,
-    });
+    claims.push({ id: "c-0", text: text.trim().slice(0, 200) || "(empty input)", status: "Unverified", confidence: 40 });
   }
-
-  const weight = (c: Claim) =>
-    c.status === "Verified"
-      ? c.confidence
-      : c.status === "Contradicted"
-        ? c.confidence * 0.4
-        : c.confidence * 0.7;
+  const weight = (c: LegacyClaim) =>
+    c.status === "Verified" ? c.confidence : c.status === "Contradicted" ? c.confidence * 0.4 : c.confidence * 0.7;
   const overall = Math.round(claims.reduce((sum, c) => sum + weight(c), 0) / claims.length);
-
   const sources = buildSources(topic, claims);
-
   const contradicted = claims.filter((c) => c.status === "Contradicted").length;
   const verified = claims.filter((c) => c.status === "Verified").length;
   const summary =
@@ -178,13 +136,7 @@ export function verifyContent(text: string): VerificationResult {
       : verified > 0
         ? `Cross-verified ${verified} claim${verified > 1 ? "s" : ""}${topic ? ` against ${topic.topic} references` : ""}.`
         : "Content is outside the indexed undergraduate CS domain.";
-
-  return {
-    overallConfidence: Math.max(0, Math.min(100, overall)),
-    claims,
-    sources,
-    summary,
-  };
+  return { overallConfidence: Math.max(0, Math.min(100, overall)), claims, sources, summary };
 }
 
 export interface SampleDataset {

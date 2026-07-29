@@ -44,7 +44,7 @@ export function WorkspacePanel({
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:gap-3">
             <span className="tabular-nums">{text.trim().length} chars</span>
             <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:inline-block" />
-            <span>Frontend prototype • mock heuristics</span>
+            <span>Live web verification · trusted sources</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
