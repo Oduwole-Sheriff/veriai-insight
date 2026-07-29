@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { Download, FileJson, FileSpreadsheet, FileText, FileType } from "lucide-react";
 import type { VerificationResult } from "@/lib/veriai/types";
 import { exportCsv, exportJson, exportMarkdown, exportPdf } from "@/lib/veriai/exporters";
@@ -10,8 +10,8 @@ interface Props {
 
 export function ExportMenu({ result }: Props) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useClickOutside(ref, () => setOpen(false));
+  const close = useCallback(() => setOpen(false), []);
+  const ref = useClickOutside<HTMLDivElement>(open, close);
 
   const items = [
     { label: "JSON", icon: FileJson, run: () => exportJson(result) },
