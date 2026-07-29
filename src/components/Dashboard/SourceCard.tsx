@@ -1,5 +1,6 @@
-import { BookOpen, CheckCircle2, ExternalLink, FileCode2, Globe, GraduationCap, MessageSquare, XCircle, Info } from "lucide-react";
+import { BookOpen, Building2, CheckCircle2, ExternalLink, FileCode2, Globe, GraduationCap, Info, MessageSquare, Newspaper, XCircle } from "lucide-react";
 import type { Source, SourceKind, SourceStatus } from "@/lib/veriai/types";
+import { CitationMenu } from "./CitationMenu";
 
 interface Props {
   source: Source;
@@ -12,6 +13,9 @@ const KIND_ICON: Record<SourceKind, typeof Globe> = {
   "Stack Overflow": MessageSquare,
   "Official Documentation": Globe,
   "Academic Reference": GraduationCap,
+  Government: Building2,
+  News: Newspaper,
+  Web: Globe,
 };
 
 const STATUS_STYLES: Record<SourceStatus, { icon: typeof CheckCircle2; cls: string; label: string }> = {

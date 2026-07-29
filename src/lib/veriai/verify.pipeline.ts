@@ -42,7 +42,7 @@ export async function runLiveVerification(text: string): Promise<VerificationRes
     .map((c) => c.text.trim());
 
   const perClaim = await pMapLimit(claimTexts, 3, async (claimText) => {
-    let hits;
+    let hits: Awaited<ReturnType<typeof search.search>> = [];
     try {
       hits = await search.search(claimText, { maxResults: SOURCES_PER_CLAIM });
     } catch {
