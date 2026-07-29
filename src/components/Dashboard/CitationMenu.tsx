@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Quote, Copy, Check } from "lucide-react";
 import type { Source } from "@/lib/veriai/types";
 import { CITATION_STYLES, formatCitation, type CitationStyle } from "@/lib/veriai/citations";
@@ -12,8 +12,8 @@ interface Props {
 export function CitationMenu({ source, index }: Props) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState<CitationStyle | null>(null);
-  const ref = useRef<HTMLDivElement>(null);
-  useClickOutside(ref, () => setOpen(false));
+  const close = useCallback(() => setOpen(false), []);
+  const ref = useClickOutside<HTMLDivElement>(open, close);
 
   const copy = async (style: CitationStyle, e: React.MouseEvent) => {
     e.preventDefault();
