@@ -6,6 +6,7 @@ import { IdleState } from "./IdleState";
 import { VerifyingState } from "./VerifyingState";
 import { ResultsView } from "./ResultsView";
 import { FooterDisclaimer } from "./FooterDisclaimer";
+import { AlertTriangle } from "lucide-react";
 
 export function Dashboard() {
   const [text, setText] = useState("");
@@ -45,6 +46,20 @@ export function Dashboard() {
           isVerifying={isVerifying}
           progress={progress}
         />
+
+        {state === "error" && (
+          <div className="mt-8 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div>
+              <p className="font-medium">Verification could not run</p>
+              <p className="mt-1 text-xs opacity-90">{error}</p>
+              <p className="mt-1 text-xs opacity-75">
+                Configure a search provider and an AI provider in your environment variables, or
+                enable offline mode explicitly (VITE_ENABLE_OFFLINE_MODE=true).
+              </p>
+            </div>
+          </div>
+        )}
 
         {state === "idle" && <IdleState />}
         {isVerifying && !showResults && <VerifyingState progress={progress} phase={phase} />}

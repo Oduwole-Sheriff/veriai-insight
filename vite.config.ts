@@ -12,4 +12,9 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  // Portable hosting: never bind to a hardcoded external host.
+  vite: {
+    server: { host: true, allowedHosts: true },
+    preview: { host: true, allowedHosts: true },
+  },
 });
