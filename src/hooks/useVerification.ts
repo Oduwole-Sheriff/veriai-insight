@@ -3,10 +3,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { verifyContentLive } from "@/lib/veriai/verify.functions";
 import { fallbackVerify } from "@/lib/veriai/fallback";
 import { saveHistory } from "@/lib/veriai/history";
+import { getVerifyEndpoint, isOfflineModeEnabled } from "@/lib/veriai/config";
 import type { VerificationResult } from "@/lib/veriai/types";
 
 export type VerificationState = "idle" | "verifying" | "results" | "error";
 export type VerificationPhase = "extracting" | "researching" | "reasoning" | "done";
+
 
 const PHASE_TARGETS: Record<VerificationPhase, number> = {
   extracting: 30,
