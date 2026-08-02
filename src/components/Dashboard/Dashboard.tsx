@@ -42,13 +42,13 @@ export function Dashboard() {
           onTextChange={setText}
           onVerify={handleVerify}
           onLoadSample={handleLoadSample}
-          isVerifying={state === "verifying"}
+          isVerifying={isVerifying}
           progress={progress}
         />
 
         {state === "idle" && <IdleState />}
-        {state === "verifying" && <VerifyingState progress={progress} phase={phase} />}
-        {state === "results" && result && <ResultsView result={result} error={error} />}
+        {isVerifying && !showResults && <VerifyingState progress={progress} phase={phase} />}
+        {showResults && <ResultsView result={result} error={error} />}
 
         <FooterDisclaimer />
       </div>
