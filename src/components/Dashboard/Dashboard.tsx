@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useVerification } from "@/hooks/useVerification";
 import { Header } from "./Header";
 import { WorkspacePanel } from "./WorkspacePanel";
@@ -9,7 +9,8 @@ import { FooterDisclaimer } from "./FooterDisclaimer";
 
 export function Dashboard() {
   const [text, setText] = useState("");
-  const { state, result, progress, phase, error, run, reset, openResult } = useVerification();
+  const { state, isVerifying, result, progress, phase, error, run, reset, openResult } =
+    useVerification();
 
   const handleVerify = useCallback(() => run(text), [run, text]);
   const handleLoadSample = useCallback(
@@ -19,6 +20,12 @@ export function Dashboard() {
     },
     [reset],
   );
+
+  const showResults = state === "results" && !!result;
+  useEffect(() => {
+    if (showResults) console.log("[VeriAI] ResultsView rendered");
+  }, [showResults]);
+
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-background via-background to-background">
@@ -35,13 +42,13 @@ export function Dashboard() {
           onTextChange={setText}
           onVerify={handleVerify}
           onLoadSample={handleLoadSample}
-          isVerifying={state === "verifying"}
+          isVerifying={isVerifying}
           progress={progress}
         />
 
         {state === "idle" && <IdleState />}
-        {state === "verifying" && <VerifyingState progress={progress} phase={phase} />}
-        {state === "results" && result && <ResultsView result={result} error={error} />}
+        {isVerifying && !showResults && <VerifyingState progress={progress} phase={phase} />}
+        {showResults && <ResultsView result={result} error={error} />}
 
         <FooterDisclaimer />
       </div>
