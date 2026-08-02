@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useVerification } from "@/hooks/useVerification";
 import { Header } from "./Header";
 import { WorkspacePanel } from "./WorkspacePanel";
