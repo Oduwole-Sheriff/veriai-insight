@@ -111,7 +111,31 @@ export function useVerification() {
       timersRef.current.push(setTimeout(() => setPhaseAndTarget("reasoning"), 3600));
 
       try {
-        const res = await verifyFn({ data: { text: trimmed } });
+        // Either a configurable external endpoint (e.g. your own Supabase Edge
+        // Function) or, by default, the app's own same-origin server function.
+        const endpoint = getVerifyEndpoint();
+        let res: VerificationResult;
+        if (endpoint) {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 90_000);
+          try {
+            const httpRes = await fetch(endpoint, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ text: trimmed }),
+              signal: controller.signal,
+            });
+            if (!httpRes.ok) {
+              const body = await httpRes.text();
+              throw new Error(body || `Verification endpoint returned ${httpRes.status}`);
+            }
+            res = (await httpRes.json()) as VerificationResult;
+          } finally {
+            clearTimeout(timer);
+          }
+        } else {
+          res = await verifyFn({ data: { text: trimmed } });
+        }
         // eslint-disable-next-line no-console
         console.log("[VeriAI] request completed", res);
         if (!mountedRef.current || runId !== runIdRef.current) return;
@@ -123,21 +147,33 @@ export function useVerification() {
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Live verification failed";
-        // eslint-disable-next-line no-console
-        console.log("[VeriAI] request failed → fallback", message);
         if (!mountedRef.current || runId !== runIdRef.current) return;
-        finish(fallbackVerify(trimmed, "Live verification unavailable —"), message);
+        // The offline heuristic engine is opt-in only; otherwise surface the error.
+        if (isOfflineModeEnabled()) {
+          // eslint-disable-next-line no-console
+          console.log("[VeriAI] request failed → offline mode", message);
+          finish(fallbackVerify(trimmed, "Live verification unavailable —"), message);
+        } else {
+          // eslint-disable-next-line no-console
+          console.log("[VeriAI] request failed", message);
+          cancelRaf();
+          clearTimers();
+          setResult(null);
+          setError(message);
+          setProgress(0);
+          setState("error");
+        }
       } finally {
         // Loading is always cleared, no matter what happened above.
         cancelRaf();
         clearTimers();
         if (mountedRef.current && runId === runIdRef.current) {
           setState((s) => (s === "verifying" ? "results" : s));
-          setProgress(100);
         }
       }
     },
     [cancelRaf, clearTimers, tick, setPhaseAndTarget, verifyFn, finish],
+
   );
 
   const reset = useCallback(() => {
