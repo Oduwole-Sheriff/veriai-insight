@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: veriai-insight
+    env: node
+    region: oregon
+    # Node runtime: choose 20 or 18 depending on your preference; Node 20 is recommended.
+    runtime: node:20
+    plan: free
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render will set PORT automatically at runtime; not necessary to set here.
+    # Optional health check path (adjust if your app has a health endpoint)
+    healthCheckPath: /
