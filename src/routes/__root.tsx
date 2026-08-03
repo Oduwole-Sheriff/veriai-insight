@@ -72,12 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "VeriAI - AI Hallucination Detection Dashboard" },
-      { name: "description", content: "Verify AI-generated answers against live, trusted web sources with claim-level confidence scoring." },
-      { property: "og:title", content: "VeriAI - AI Hallucination Detection Dashboard" },
-      { property: "og:description", content: "Verify AI-generated answers against live, trusted web sources." },
+      { title: "Lovable App" },
+      { name: "description", content: "Lovable Generated Project" },
+      { name: "author", content: "Lovable" },
+      { property: "og:title", content: "Lovable App" },
+      { property: "og:description", content: "Lovable Generated Project" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

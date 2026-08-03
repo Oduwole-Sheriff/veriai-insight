@@ -4,8 +4,6 @@ import {
   verifyClaimWithSources,
 } from "@/services/aiProvider.server";
 import { getSearchProvider, hitToSource } from "@/services/searchProvider.server";
-import { isAiConfigured } from "@/services/aiProvider.server";
-import { ConfigurationError, NO_AI_PROVIDER_MESSAGE } from "./errors";
 import type { Claim, Source, SourceStatus, VerificationResult } from "./types";
 
 const MAX_CLAIMS = 6;
@@ -36,10 +34,7 @@ async function pMapLimit<T, R>(
 }
 
 export async function runLiveVerification(text: string): Promise<VerificationResult> {
-  // Preflight: fail fast with a clear message instead of hanging when
-  // no provider is configured through environment variables.
   const search = getSearchProvider();
-  if (!isAiConfigured()) throw new ConfigurationError(NO_AI_PROVIDER_MESSAGE);
 
   const extracted = await extractClaims(text);
   const claimTexts = (extracted.length > 0 ? extracted : [{ text: text.slice(0, 240) }])
