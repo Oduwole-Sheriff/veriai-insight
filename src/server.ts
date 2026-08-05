@@ -66,8 +66,19 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   return brandedErrorResponse();
 }
 
+let loggedEnv = false;
+function logEnvOnce() {
+  if (loggedEnv) return;
+  loggedEnv = true;
+  const env = process.env as Record<string, string | undefined>;
+  const tavily = env["TAVILY_API_KEY"] ?? env["VITE_TAVILY_API_KEY"];
+  console.log(tavily ? "✓ Tavily API configured" : "✗ Tavily API missing (TAVILY_API_KEY)");
+  console.log(env["LOVABLE_API_KEY"] ? "✓ AI gateway key configured" : "✗ AI gateway key missing (LOVABLE_API_KEY)");
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    logEnvOnce();
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
@@ -78,3 +89,4 @@ export default {
     }
   },
 };
+

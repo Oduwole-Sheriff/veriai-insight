@@ -41,14 +41,19 @@ export async function runLiveVerification(text: string): Promise<VerificationRes
     .slice(0, MAX_CLAIMS)
     .map((c) => c.text.trim());
 
+  const searchErrors: string[] = [];
   const perClaim = await pMapLimit(claimTexts, 3, async (claimText) => {
     let hits: Awaited<ReturnType<typeof search.search>> = [];
     try {
       hits = await search.search(claimText, { maxResults: SOURCES_PER_CLAIM });
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      searchErrors.push(message);
+      console.error(`[VeriAI] live search failed for claim: ${message}`);
       hits = [];
     }
     const sources = hits.map((h, i) => hitToSource(h, i));
+
 
     if (sources.length === 0) {
       return {
@@ -77,7 +82,14 @@ export async function runLiveVerification(text: string): Promise<VerificationRes
     return { claimText, sources, verdict };
   });
 
+  // Key was present but every live search failed → surface the real reason
+  // instead of silently returning an empty "live" result.
+  if (searchErrors.length === claimTexts.length && claimTexts.length > 0) {
+    throw new Error(`Tavily search failed for all claims: ${searchErrors[0]}`);
+  }
+
   // Deduplicate & re-id sources across claims
+
   const sourceMap = new Map<string, Source>();
   const claims: Claim[] = perClaim.map((row, i) => {
     const sourceStatus = statusToSourceStatus(row.verdict.status);
