@@ -2,13 +2,16 @@ services:
   - type: web
     name: veriai-insight
     runtime: node
-    buildCommand: npm ci && npm run build
-    startCommand: npm run start
+
+    buildCommand: npm install && npm run build
+    startCommand: node .output/server/index.mjs
+
     envVars:
       - key: NODE_ENV
         value: production
+
       - key: VITE_SUPABASE_URL
         sync: false
+
       - key: VITE_SUPABASE_ANON_KEY
         sync: false
-     
