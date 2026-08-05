@@ -41,14 +41,19 @@ export async function runLiveVerification(text: string): Promise<VerificationRes
     .slice(0, MAX_CLAIMS)
     .map((c) => c.text.trim());
 
+  const searchErrors: string[] = [];
   const perClaim = await pMapLimit(claimTexts, 3, async (claimText) => {
     let hits: Awaited<ReturnType<typeof search.search>> = [];
     try {
       hits = await search.search(claimText, { maxResults: SOURCES_PER_CLAIM });
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      searchErrors.push(message);
+      console.error(`[VeriAI] live search failed for claim: ${message}`);
       hits = [];
     }
     const sources = hits.map((h, i) => hitToSource(h, i));
+
 
     if (sources.length === 0) {
       return {
