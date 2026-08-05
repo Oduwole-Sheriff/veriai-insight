@@ -6,27 +6,28 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-// Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-// @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
-// export default defineConfig({
-//   tanstackStart: {
-//     // Make the server entry unambiguous so Nitro/Vite won't resolve to ./server.node.js
-//     server: { entry: "./src/server.ts" },
-//   },
-//   vite: {
-//     preview: {
-//       allowedHosts: ["veriai-insight.onrender.com"],
-//     },
-//   },
-// });
+// Deployment target: Node.js (Render), not Cloudflare Workers.
+// Nitro's `node-server` preset emits `.output/server/index.mjs`, which listens on
+// process.env.PORT. Inside the Lovable sandbox the preview build stays on its own
+// managed target; this preset applies to external builds (Render/CI).
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  // ADD THIS SECTION BELOW
+  nitro: {
+    preset: "node-server",
+    output: {
+      dir: ".output",
+      serverDir: ".output/server",
+      publicDir: ".output/public",
+    },
+  },
   vite: {
     build: {
       chunkSizeWarningLimit: 1600,
+    },
+    preview: {
+      allowedHosts: ["veriai-insight.onrender.com"],
     },
   },
 });
