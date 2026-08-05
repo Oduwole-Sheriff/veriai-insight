@@ -82,7 +82,14 @@ export async function runLiveVerification(text: string): Promise<VerificationRes
     return { claimText, sources, verdict };
   });
 
+  // Key was present but every live search failed → surface the real reason
+  // instead of silently returning an empty "live" result.
+  if (searchErrors.length === claimTexts.length && claimTexts.length > 0) {
+    throw new Error(`Tavily search failed for all claims: ${searchErrors[0]}`);
+  }
+
   // Deduplicate & re-id sources across claims
+
   const sourceMap = new Map<string, Source>();
   const claims: Claim[] = perClaim.map((row, i) => {
     const sourceStatus = statusToSourceStatus(row.verdict.status);
