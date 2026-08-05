@@ -13,6 +13,13 @@ services:
       - key: NITRO_PRESET
         value: node-server
 
+      # Server-only secrets (never VITE_ prefixed — must stay out of the browser bundle)
+      - key: TAVILY_API_KEY
+        sync: false
+
+      - key: LOVABLE_API_KEY
+        sync: false
+
       - key: VITE_SUPABASE_URL
         sync: false
 
@@ -21,3 +28,4 @@ services:
 
       - key: VITE_SUPABASE_PROJECT_ID
         sync: false
+
