@@ -10,8 +10,14 @@ services:
       - key: NODE_ENV
         value: production
 
+      - key: NITRO_PRESET
+        value: node-server
+
       - key: VITE_SUPABASE_URL
         sync: false
 
-      - key: VITE_SUPABASE_ANON_KEY
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+
+      - key: VITE_SUPABASE_PROJECT_ID
         sync: false
