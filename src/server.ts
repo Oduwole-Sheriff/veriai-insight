@@ -73,7 +73,7 @@ function logEnvOnce() {
   const env = process.env as Record<string, string | undefined>;
   const tavily = env["TAVILY_API_KEY"] ?? env["VITE_TAVILY_API_KEY"];
   console.log(tavily ? "✓ Tavily API configured" : "✗ Tavily API missing (TAVILY_API_KEY)");
-  console.log(env["LOVABLE_API_KEY"] ? "✓ AI gateway key configured" : "✗ AI gateway key missing (LOVABLE_API_KEY)");
+  console.log(env["GEMINI_API_KEY"] ? "✓ Gemini API configured" : "✗ Gemini API missing (GEMINI_API_KEY)");
 }
 
 export default {
