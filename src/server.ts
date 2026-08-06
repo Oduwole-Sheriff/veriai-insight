@@ -73,7 +73,9 @@ function logEnvOnce() {
   const env = process.env as Record<string, string | undefined>;
   const tavily = env["TAVILY_API_KEY"] ?? env["VITE_TAVILY_API_KEY"];
   console.log(tavily ? "✓ Tavily API configured" : "✗ Tavily API missing (TAVILY_API_KEY)");
-  console.log(env["GEMINI_API_KEY"] ? "✓ Gemini API configured" : "✗ Gemini API missing (GEMINI_API_KEY)");
+  console.log(env["OPENROUTER_API_KEY"] ? "✓ OpenRouter configured" : "✗ OpenRouter missing (OPENROUTER_API_KEY)");
+  console.log(env["GROQ_API_KEY"] ? "✓ Groq configured" : "✗ Groq missing (GROQ_API_KEY)");
+  console.log(env["GEMINI_API_KEY"] ? "✓ Gemini configured" : "✗ Gemini missing (GEMINI_API_KEY)");
 }
 
 export default {
